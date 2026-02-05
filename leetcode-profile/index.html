@@ -1,0 +1,172 @@
+{% assign pctEasy = easySolved | times: 100 | divided_by: totalEasy %}
+{% assign pctMedium = mediumSolved | times: 100 | divided_by: totalMedium %}
+{% assign pctHard = hardSolved | times: 100 | divided_by: totalHard %}
+
+<style>
+    #lc_months {
+        display: flex;
+        flex-direction: row;
+        gap: 8px;
+        align-items: flex-start;
+        margin-top: 6px;
+    }
+
+    .month-block {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .month-title {
+        font-size: 9px;
+    }
+
+    .month-grid {
+        display: grid;
+        grid-template-rows: repeat(7, 9px);
+        grid-auto-flow: column;
+        grid-auto-columns: 9px;
+        gap: 2px;
+    }
+
+    .day {
+        width: 9px;
+        height: 9px;
+        border-radius: 2px;
+    }
+</style>
+
+<div class="layout layout--col gap--space-between">
+    <div class="grid grid--cols-1">
+        <div class="row row--center">
+            <div class="content">
+                <span class="value value--xlarge value--tnums">
+                    {{ totalSolved }} / {{ totalQuestions }}
+                </span>
+            </div>
+        </div>
+        <div class="row row--center">
+            <div class="content">
+                <span class="label">
+                    Solved
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="border--h-5 w--full"></div>
+
+    <div class="grid grid--cols-3 gap--large">
+        <div class="item">
+            <div class="content">
+                <span class="value value--small value--tnums">{{ easySolved }}</span>
+                <span class="label">Easy</span>
+                <div class="spacer spacer--4"></div>
+                <div class="w--full h--1 bg--gray-6" style="border-radius:20px;">
+                    <div class="h--1 bg--black" style="width:{{ pctEasy }}%; border-radius:20px;"></div>
+                </div>
+                <span class="label">{{ pctEasy }}%</span>
+            </div>
+        </div>
+
+        <div class="item">
+            <div class="content">
+                <span class="value value--small value--tnums">{{ mediumSolved }}</span>
+                <span class="label">Medium</span>
+                <div class="spacer spacer--4"></div>
+                <div class="w--full h--1 bg--gray-6" style="border-radius:20px;">
+                    <div class="h--1 bg--black" style="width:{{ pctMedium }}%; border-radius:20px;"></div>
+                </div>
+                <span class="label">{{ pctMedium }}%</span>
+            </div>
+        </div>
+
+        <div class="item">
+            <div class="content">
+                <span class="value value--small value--tnums">{{ hardSolved }}</span>
+                <span class="label">Hard</span>
+                <div class="spacer spacer--4"></div>
+                <div class="w--full h--1 bg--gray-6" style="border-radius:20px;">
+                    <div class="h--1 bg--black" style="width:{{ pctHard }}%; border-radius:20px;"></div>
+                </div>
+                <span class="label">{{ pctHard }}%</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="border--h-5 w--full"></div>
+
+    <div id="lc_months"></div>
+</div>
+
+<div class="title_bar">
+    <img class="image ml--1"
+        src="https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://leetcode.com/&size=256">
+    <span class="title">LeetCode</span>
+    <span class="instance">Rank #{{ ranking }}</span>
+</div>
+
+<script>
+    const calendar = {{ submissionCalendar | json }};
+    const root = document.getElementById('lc_months');
+
+    const daySec = 86400;
+
+    function getCountForDate(date) {
+        const ts = Math.floor(date.getTime() / 1000);
+
+        for (const key in calendar) {
+            if (Math.abs(Number(key) - ts) < daySec / 2) {
+                return calendar[key];
+            }
+        }
+        return 0;
+    }
+
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const start = new Date(today.getFullYear(), today.getMonth() - 11, 1);
+
+    for (let i = 0; i < 12; i++) {
+        const year = start.getFullYear();
+        const month = start.getMonth();
+
+        const monthStart = new Date(year, month, 1);
+        const monthEnd = new Date(year, month + 1, 0);
+
+        const block = document.createElement('div');
+        block.className = 'month-block';
+
+        const title = document.createElement('div');
+        title.className = 'month-title';
+        title.textContent = monthNames[month];
+        block.appendChild(title);
+
+        const grid = document.createElement('div');
+        grid.className = 'month-grid';
+
+        for (let d = new Date(monthStart); d <= monthEnd; d.setDate(d.getDate() + 1)) {
+            if (d > today) break;
+
+            const count = getCountForDate(d);
+
+            const cell = document.createElement('div');
+            cell.className = 'day';
+
+            if (count === 0) cell.classList.add('bg--gray-6');
+            else if (count < 2) cell.classList.add('bg--gray-4');
+            else if (count < 5) cell.classList.add('bg--gray-2');
+            else cell.classList.add('bg--black');
+
+            grid.appendChild(cell);
+        }
+
+        block.appendChild(grid);
+        root.appendChild(block);
+        start.setMonth(start.getMonth() + 1);
+    }
+</script>
